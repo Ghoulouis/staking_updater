@@ -95,11 +95,11 @@ async function updatePoolLP() {
     const rpsOffChain = ethers.parseEther(atiPs);
     const rpsOnChain = await vault.rps();
 
-    console.log(
-        "update rps lp ",
-        ethers.formatEther(rpsOnChain.toString()),
-        " ->",
-        ethers.formatEther(rpsOffChain.toString())
+    discord.log(
+        `update rps lp 
+        ${ethers.formatEther(rpsOnChain.toString())}
+        " ->"
+        ${ethers.formatEther(rpsOffChain.toString())}`
     );
 
     if (
