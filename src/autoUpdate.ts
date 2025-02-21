@@ -33,7 +33,7 @@ function scheduleNextRun() {
 }
 
 async function auto() {
-    await updatePoolATI();
+    //await updatePoolATI();
     await updatePoolLP();
 }
 
@@ -51,11 +51,11 @@ async function updatePoolATI() {
     let txResponse, txReceipt;
     console.log("update rps token ", rps_old.toString(), " ->", rps_new.toString());
     if (Math.abs(Number(rps_old) - Number(rps_new)) > Number(rps_old) / 50) {
-        // const caller = new Wallet(process.env.PRIVATE_KEY!, PROVIDER);
-        // discord.log(`Update rps from ${rps_old} to ${rps_new}`);
-        // txResponse = await vault_token.connect(caller).updateRps(rps_new);
-        // txReceipt = await txResponse.wait();
-        // discord.log(`Transaction hash: ${txReceipt!.hash}`);
+        const caller = new Wallet(process.env.PRIVATE_KEY!, PROVIDER);
+        discord.log(`Update rps from ${rps_old} to ${rps_new}`);
+        txResponse = await vault_token.connect(caller).updateRps(rps_new);
+        txReceipt = await txResponse.wait();
+        discord.log(`Transaction hash: ${txReceipt!.hash}`);
     }
 }
 
@@ -84,13 +84,13 @@ async function updatePoolLP() {
     let numberHOLD = BigNumber(ethers.formatEther(amount1.toFixed(0)));
 
     // Tổng giá trị pool theo token0
-    let totalValueInToken0 = numberATI.plus(numberHOLD.times(priceRatio));
+    let totalValueInToken0 = numberATI.plus(numberHOLD.div(priceRatio));
 
     let apy = new BigNumber(0.5);
     let rewardPerDay = totalValueInToken0.times(apy).div(365);
     let rps = rewardPerDay.div(24).div(60).div(60);
     let atiPs = rps.toFixed(17);
-
+    let txResponse, txReceipt;
     const rpsOffChain = ethers.parseEther(atiPs);
     const rpsOnChain = await vault.rps();
 
@@ -98,11 +98,11 @@ async function updatePoolLP() {
 
     if (Math.abs(Number(rpsOnChain) - Number(rpsOffChain)) > Number(rpsOnChain) / 50) {
         console.log(rpsOnChain.toString(), " ->", rpsOffChain.toString());
-        // const caller = new Wallet(process.env.PRIVATE_KEY!, PROVIDER);
-        // discord.log(`Update rps from ${rpsOnChain} to ${rpsOffChain}`);
-        // txResponse = await vault.connect(caller).updateRps(rpsOffChain);
-        // txReceipt = await txResponse.wait();
-        // discord.log(`Transaction hash: ${txReceipt!.hash}`);
+        const caller = new Wallet(process.env.PRIVATE_KEY!, PROVIDER);
+        discord.log(`Update rps from ${rpsOnChain} to ${rpsOffChain}`);
+        txResponse = await vault.connect(caller).updateRps(rpsOffChain);
+        txReceipt = await txResponse.wait();
+        discord.log(`Transaction hash: ${txReceipt!.hash}`);
     }
 }
 
