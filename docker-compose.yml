@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: athen-staking
+        restart: on-failure
+        environment:
+            PRIVATE_KEY: ${PRIVATE_KEY}
+            DISCORD_TOKEN: ${DISCORD_TOKEN}
