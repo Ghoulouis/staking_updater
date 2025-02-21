@@ -16,8 +16,8 @@ export async function setupAuto() {
 const mutex = new Mutex();
 
 function getRandomTime() {
-    const minSeconds = 30;
-    const maxSeconds = 60;
+    const minSeconds = 3 * 60;
+    const maxSeconds = 4 * 60;
     const randomSeconds = Math.random() * (maxSeconds - minSeconds) + minSeconds;
     return randomSeconds * 1000;
 }
@@ -69,8 +69,8 @@ async function updatePoolLP() {
     let slot0 = await pool.slot0();
     let sqrtPriceX96 = new BigNumber(slot0.sqrtPriceX96.toString());
 
-    let tickUpper = -887270;
-    let tickLower = 887270;
+    let tickUpper = 887220;
+    let tickLower = -887220;
     let liquidity = new BigNumber((await vault.totalStaked()).toString());
 
     let sqrtPriceLowerX96 = getSqrtRatioAtTick(Number(tickLower));
@@ -82,7 +82,8 @@ async function updatePoolLP() {
     let priceRatio = sqrtPriceX96.div(new BigNumber(2).pow(96)).pow(2);
     let numberATI = BigNumber(ethers.formatEther(amount0.toFixed(0)));
     let numberHOLD = BigNumber(ethers.formatEther(amount1.toFixed(0)));
-
+    discord.log(`numberATI ${numberATI.toString()}`);
+    discord.log(`numberHOLD ${numberHOLD.toString()}`);
     // Tổng giá trị pool theo token0
     let totalValueInToken0 = numberATI.plus(numberHOLD.div(priceRatio));
 
@@ -94,12 +95,19 @@ async function updatePoolLP() {
     const rpsOffChain = ethers.parseEther(atiPs);
     const rpsOnChain = await vault.rps();
 
-    console.log("update rps lp ", rpsOnChain.toString(), " ->", rpsOffChain.toString());
+    console.log(
+        "update rps lp ",
+        ethers.formatEther(rpsOnChain.toString()),
+        " ->",
+        ethers.formatEther(rpsOffChain.toString())
+    );
 
-    if (Math.abs(Number(rpsOnChain) - Number(rpsOffChain)) > Number(rpsOnChain) / 50) {
-        console.log(rpsOnChain.toString(), " ->", rpsOffChain.toString());
-        const caller = new Wallet(process.env.PRIVATE_KEY!, PROVIDER);
+    if (
+        Math.abs(Number(ethers.formatEther(rpsOffChain)) - Number(ethers.formatEther(rpsOnChain))) >
+        Number(ethers.formatEther(rpsOffChain)) / 50
+    ) {
         discord.log(`Update rps from ${rpsOnChain} to ${rpsOffChain}`);
+        const caller = new Wallet(process.env.PRIVATE_KEY!, PROVIDER);
         txResponse = await vault.connect(caller).updateRps(rpsOffChain);
         txReceipt = await txResponse.wait();
         discord.log(`Transaction hash: ${txReceipt!.hash}`);
